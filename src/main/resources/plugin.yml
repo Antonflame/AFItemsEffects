@@ -1,0 +1,9 @@
+name: AFItemsEffects
+version: '${project.version}'
+main: ru.anton_flame.afitemseffects.AFItemsEffects
+api-version: '1.16'
+authors: [anton_flame]
+softdepend: [Vault, PlayerPoints]
+commands:
+  afitemseffects: {}
+  itemseffects: {}
