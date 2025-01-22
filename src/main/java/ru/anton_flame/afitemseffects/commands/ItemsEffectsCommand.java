@@ -254,7 +254,6 @@ public class ItemsEffectsCommand implements CommandExecutor {
                                 String format = Hex.color(plugin.getConfig().getString("settings.effect-in-lore-format")
                                         .replace("%effect_type%", plugin.getConfig().getString("settings.effects." + effectName + ".display-name"))
                                         .replace("%effect_level%", effectLevel));
-
                                 lore.remove(Component.text(format));
 
                                 meta.lore(lore);

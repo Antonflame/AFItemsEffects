@@ -23,6 +23,8 @@ public class EffectsUpdateTask extends BukkitRunnable {
         this.plugin = plugin;
     }
 
+    private boolean hasEffect = false;
+
     @Override
     public void run() {
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -38,11 +40,13 @@ public class EffectsUpdateTask extends BukkitRunnable {
                 if (armor != null) checkEffects(armor, effects);
             }
 
-            for (PotionEffect effect : player.getActivePotionEffects()) {
-                String effectInfo = effect.getType().getName() + ":" + (effect.getAmplifier() + 1);
+            if (hasEffect) {
+                for (PotionEffect effect : player.getActivePotionEffects()) {
+                    String effectInfo = effect.getType().getName() + ":" + (effect.getAmplifier() + 1);
 
-                if (!effects.contains(effectInfo)) {
-                    Bukkit.getScheduler().runTask(plugin, () -> player.removePotionEffect(effect.getType()));
+                    if (!effects.contains(effectInfo)) {
+                        Bukkit.getScheduler().runTask(plugin, () -> player.removePotionEffect(effect.getType()));
+                    }
                 }
             }
 
@@ -96,6 +100,7 @@ public class EffectsUpdateTask extends BukkitRunnable {
                     }
 
                     if (addEffect) {
+                        hasEffect = true;
                         effects.add(effectType + ":" + effectLevel);
                     }
                 }

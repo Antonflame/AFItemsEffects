@@ -21,9 +21,7 @@ public final class AFItemsEffects extends JavaPlugin {
     @Override
     public void onEnable() {
         getLogger().info("Плагин был включен!");
-
         saveDefaultConfig();
-
         setupEconomy();
 
         getCommand("afitemseffects").setExecutor(new AFItemsEffectsCommand(this));
@@ -44,7 +42,6 @@ public final class AFItemsEffects extends JavaPlugin {
         }
 
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-
         if (rsp == null) {
             return false;
         }
