@@ -89,6 +89,7 @@ public class EffectsUpdateTask extends BukkitRunnable {
 
                             if (currentEffectType.equalsIgnoreCase(effectType) && currentEffectLevel < effectLevel) {
                                 effects.remove(effect);
+                                hasEffect = false;
                                 break;
                             }
 
