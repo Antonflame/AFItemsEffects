@@ -23,8 +23,6 @@ public class EffectsUpdateTask extends BukkitRunnable {
         this.plugin = plugin;
     }
 
-    private boolean hasEffect = false;
-
     @Override
     public void run() {
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -36,17 +34,16 @@ public class EffectsUpdateTask extends BukkitRunnable {
             ItemStack offHandItem = player.getInventory().getItemInOffHand();
             checkEffects(offHandItem, effects);
 
+
             for (ItemStack armor : player.getInventory().getArmorContents()) {
                 if (armor != null) checkEffects(armor, effects);
             }
 
-            if (hasEffect) {
-                for (PotionEffect effect : player.getActivePotionEffects()) {
-                    String effectInfo = effect.getType().getName() + ":" + (effect.getAmplifier() + 1);
+            for (PotionEffect effect : player.getActivePotionEffects()) {
+                String effectInfo = effect.getType().getName() + ":" + (effect.getAmplifier() + 1);
 
-                    if (!effects.contains(effectInfo)) {
-                        Bukkit.getScheduler().runTask(plugin, () -> player.removePotionEffect(effect.getType()));
-                    }
+                if (!effects.contains(effectInfo)) {
+                    Bukkit.getScheduler().runTask(plugin, () -> player.removePotionEffect(effect.getType()));
                 }
             }
 
@@ -89,7 +86,6 @@ public class EffectsUpdateTask extends BukkitRunnable {
 
                             if (currentEffectType.equalsIgnoreCase(effectType) && currentEffectLevel < effectLevel) {
                                 effects.remove(effect);
-                                hasEffect = false;
                                 break;
                             }
 
@@ -101,7 +97,6 @@ public class EffectsUpdateTask extends BukkitRunnable {
                     }
 
                     if (addEffect) {
-                        hasEffect = true;
                         effects.add(effectType + ":" + effectLevel);
                     }
                 }
