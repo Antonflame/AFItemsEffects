@@ -146,6 +146,11 @@ public class ItemsEffectsCommand implements CommandExecutor {
 
                 if (economyName != null && price > 0) {
                     if (economyName.equalsIgnoreCase("Vault")) {
+                        if (plugin.vaultAPI == null) {
+                            player.sendMessage(Hex.color(plugin.getConfig().getString("messages.economy-not-found")));
+                            return false;
+                        }
+
                         if (!plugin.vaultAPI.has(player, price)) {
                             player.sendMessage(Hex.color(plugin.getConfig().getString("messages.not-enough-currency")));
                             return false;
@@ -153,6 +158,11 @@ public class ItemsEffectsCommand implements CommandExecutor {
 
                         plugin.vaultAPI.withdrawPlayer(player, price);
                     } else if (economyName.equalsIgnoreCase("PlayerPoints")) {
+                        if (plugin.playerPointsAPI == null) {
+                            player.sendMessage(Hex.color(plugin.getConfig().getString("messages.economy-not-found")));
+                            return false;
+                        }
+
                         if (plugin.playerPointsAPI.look(player.getUniqueId()) < price) {
                             player.sendMessage(Hex.color(plugin.getConfig().getString("messages.not-enough-currency")));
                             return false;

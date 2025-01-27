@@ -12,9 +12,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import ru.anton_flame.afitemseffects.AFItemsEffects;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EffectsUpdateTask extends BukkitRunnable {
 
@@ -26,81 +25,116 @@ public class EffectsUpdateTask extends BukkitRunnable {
     @Override
     public void run() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            List<String> effects = new ArrayList<>();
+            Map<String, String> currentEffects = getCurrentEffects(player);
+            Map<String, String> newEffects = new HashMap<>();
 
-            ItemStack mainHandItem = player.getInventory().getItemInMainHand();
-            checkEffects(mainHandItem, effects);
-
-            ItemStack offHandItem = player.getInventory().getItemInOffHand();
-            checkEffects(offHandItem, effects);
-
-
+            checkEffects(player.getInventory().getItemInMainHand(), newEffects);
+            checkEffects(player.getInventory().getItemInOffHand(), newEffects);
             for (ItemStack armor : player.getInventory().getArmorContents()) {
-                if (armor != null) checkEffects(armor, effects);
-            }
-
-            for (PotionEffect effect : player.getActivePotionEffects()) {
-                String effectInfo = effect.getType().getName() + ":" + (effect.getAmplifier() + 1);
-
-                if (!effects.contains(effectInfo)) {
-                    Bukkit.getScheduler().runTask(plugin, () -> player.removePotionEffect(effect.getType()));
+                if (armor != null) {
+                    checkEffects(armor, newEffects);
                 }
             }
 
-            for (String effect : effects) {
-                String[] effectInfo = effect.split(":");
-                if (effectInfo.length == 2) {
-                    PotionEffectType effectType = PotionEffectType.getByName(effectInfo[0]);
-                    int effectLevel = Integer.parseInt(effectInfo[1]);
-
-                    if (!player.hasPotionEffect(effectType)) {
-                        Bukkit.getScheduler().runTask(plugin, () -> player.addPotionEffect(new PotionEffect(effectType, Integer.MAX_VALUE, effectLevel - 1)));
+            for (Map.Entry<String, String> effectEntry : currentEffects.entrySet()) {
+                String effectInfo = effectEntry.getKey();
+                if (!newEffects.containsKey(effectInfo)) {
+                    PotionEffectType type = PotionEffectType.getByName(effectInfo.split(":")[0]);
+                    if (type != null) {
+                        Bukkit.getScheduler().runTask(plugin, () -> player.removePotionEffect(type));
                     }
                 }
+            }
+
+            for (Map.Entry<String, String> effectEntry : newEffects.entrySet()) {
+                String effectInfo = effectEntry.getKey();
+                String identifier = effectEntry.getValue();
+                if (!currentEffects.containsKey(effectInfo) || !currentEffects.get(effectInfo).equals(identifier)) {
+                    String[] effectParts = effectInfo.split(":");
+                    PotionEffectType type = PotionEffectType.getByName(effectParts[0]);
+                    int level = Integer.parseInt(effectParts[1]) - 1;
+
+                    if (type != null) {
+                        boolean shouldUpdate = false;
+                        PotionEffect existingEffect = null;
+                        for (PotionEffect activeEffect : player.getActivePotionEffects()) {
+                            if (activeEffect.getType() == type && activeEffect.getAmplifier() == level) {
+                                existingEffect = activeEffect;
+                                if (activeEffect.getDuration() < Integer.MAX_VALUE) {
+                                    shouldUpdate = true;
+                                }
+                                break;
+                            }
+                        }
+
+                        if (shouldUpdate || existingEffect == null) {
+                            Bukkit.getScheduler().runTask(plugin, () -> player.addPotionEffect(new PotionEffect(type, Integer.MAX_VALUE, level)));
+                        }
+                    }
+                }
+            }
+            saveCurrentEffects(player, newEffects);
+        }
+    }
+
+    private Map<String, String> getCurrentEffects(Player player) {
+        Map<String, String> effects = new HashMap<>();
+        if (player.getPersistentDataContainer().has(plugin.playerEffectsKey, PersistentDataType.STRING)) {
+            String savedEffects = player.getPersistentDataContainer().get(plugin.playerEffectsKey, PersistentDataType.STRING);
+            for (String effectEntry : savedEffects.split(";")) {
+                String[] parts = effectEntry.split(":");
+                if (parts.length == 3) {
+                    String effectType = parts[0];
+                    String effectLevel = parts[1];
+                    String identifier = parts[2];
+                    effects.put(effectType + ":" + effectLevel, identifier);
+                }
+            }
+        }
+        return effects;
+    }
+
+    private void saveCurrentEffects(Player player, Map<String, String> effects) {
+        String effectsString = effects.entrySet().stream()
+                .map(entry -> entry.getKey() + ":" + entry.getValue())
+                .collect(Collectors.joining(";"));
+        player.getPersistentDataContainer().set(plugin.playerEffectsKey, PersistentDataType.STRING, effectsString);
+    }
+
+    private void checkEffects(ItemStack item, Map<String, String> effects) {
+        if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) return;
+
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        if (!container.has(plugin.itemEffectsKey, PersistentDataType.STRING)) return;
+
+        String itemEffectsString = container.get(plugin.itemEffectsKey, PersistentDataType.STRING);
+        if (itemEffectsString == null || itemEffectsString.isEmpty()) return;
+
+        List<String> itemEffectsList = Arrays.asList(itemEffectsString.split(";"));
+        for (String effect : itemEffectsList) {
+            String[] effectInfo = effect.split(":");
+            if (effectInfo.length == 2) {
+                String effectType = effectInfo[0];
+                int effectLevel = Integer.parseInt(effectInfo[1]);
+                String identifier = generateIdentifierKey(item);
+                effects.put(effectType + ":" + effectLevel, identifier);
             }
         }
     }
 
-    private void checkEffects(ItemStack item, List<String> effects) {
+    private String generateIdentifierKey(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return "";
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return;
-
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        String itemEffects = container.getOrDefault(plugin.itemEffectsKey, PersistentDataType.STRING, "");
-        List<String> itemEffectsList = new ArrayList<>(Arrays.asList(itemEffects.split(";")));
-
-        if (item.getType() != Material.AIR) {
-            for (String effect : itemEffectsList) {
-                String[] effectInfo = effect.split(":");
-                if (effectInfo.length == 2) {
-                    String effectType = effectInfo[0];
-                    int effectLevel = Integer.parseInt(effectInfo[1]);
-
-                    boolean addEffect = true;
-                    for (String itemEffect : effects) {
-                        String[] effectSplit = itemEffect.split(":");
-                        if (effectSplit.length == 2) {
-                            String currentEffectType = effectSplit[0];
-                            int currentEffectLevel = Integer.parseInt(effectSplit[1]);
-
-                            if (currentEffectType.equalsIgnoreCase(effectType) && currentEffectLevel < effectLevel) {
-                                effects.remove(effect);
-                                break;
-                            }
-
-                            if (currentEffectType.equalsIgnoreCase(effectType) && currentEffectLevel > effectLevel) {
-                                addEffect = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (addEffect) {
-                        effects.add(effectType + ":" + effectLevel);
-                    }
-                }
-            }
+        if (!container.has(plugin.itemIdentifierKey, PersistentDataType.STRING)) {
+            String uniqueId = UUID.randomUUID().toString();
+            container.set(plugin.itemIdentifierKey, PersistentDataType.STRING, uniqueId);
+            item.setItemMeta(meta);
+            return uniqueId;
         }
+
+        return container.get(plugin.itemIdentifierKey, PersistentDataType.STRING);
     }
 }

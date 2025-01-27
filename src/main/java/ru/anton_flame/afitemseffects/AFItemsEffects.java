@@ -14,6 +14,8 @@ import ru.anton_flame.afitemseffects.tasks.EffectsUpdateTask;
 public final class AFItemsEffects extends JavaPlugin {
 
     public final NamespacedKey itemEffectsKey = new NamespacedKey(this, "item_effects");
+    public final NamespacedKey itemIdentifierKey = new NamespacedKey(this, "item_identifier");
+    public final NamespacedKey playerEffectsKey = new NamespacedKey(this, "player_effects");
 
     public PlayerPointsAPI playerPointsAPI;
     public Economy vaultAPI;
