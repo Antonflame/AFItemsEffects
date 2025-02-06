@@ -6,4 +6,5 @@ authors: [anton_flame]
 softdepend: [Vault, PlayerPoints]
 commands:
   afitemseffects: {}
-  itemseffects: {}
+  itemseffects:
+    aliases: []

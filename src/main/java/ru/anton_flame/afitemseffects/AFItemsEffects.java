@@ -5,11 +5,17 @@ import org.black_ixx.playerpoints.PlayerPoints;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.anton_flame.afitemseffects.commands.AFItemsEffectsCommand;
 import ru.anton_flame.afitemseffects.commands.ItemsEffectsCommand;
 import ru.anton_flame.afitemseffects.tasks.EffectsUpdateTask;
+import ru.anton_flame.afitemseffects.utils.ConfigManager;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public final class AFItemsEffects extends JavaPlugin {
 
@@ -24,10 +30,18 @@ public final class AFItemsEffects extends JavaPlugin {
     public void onEnable() {
         getLogger().info("Плагин был включен!");
         saveDefaultConfig();
+        ConfigManager.setupConfigValues(this);
         setupEconomy();
 
-        getCommand("afitemseffects").setExecutor(new AFItemsEffectsCommand(this));
-        getCommand("itemseffects").setExecutor(new ItemsEffectsCommand(this));
+        PluginCommand afItemsEffectsCommand = getCommand("afitemseffects");
+        AFItemsEffectsCommand afItemsEffectsCommandClass = new AFItemsEffectsCommand(this);
+        afItemsEffectsCommand.setExecutor(afItemsEffectsCommandClass);
+        afItemsEffectsCommand.setTabCompleter(afItemsEffectsCommandClass);
+
+        PluginCommand itemsEffectsCommand = getCommand("itemseffects");
+        ItemsEffectsCommand itemsEffectsCommandClass = new ItemsEffectsCommand(this);
+        itemsEffectsCommand.setExecutor(itemsEffectsCommandClass);
+        itemsEffectsCommand.setTabCompleter(itemsEffectsCommandClass);
 
         EffectsUpdateTask effectsUpdateTask = new EffectsUpdateTask(this);
         effectsUpdateTask.runTaskTimerAsynchronously(this, 0, 20);
