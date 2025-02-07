@@ -36,6 +36,7 @@ public class AFItemsEffectsCommand implements CommandExecutor, TabCompleter {
             }
 
             plugin.reloadConfig();
+            ConfigManager.setupConfigValues(plugin);
             commandSender.sendMessage(Hex.color(ConfigManager.reloaded));
         }
         return true;
