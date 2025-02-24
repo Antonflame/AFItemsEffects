@@ -57,6 +57,7 @@ public class EffectsUpdateTask extends BukkitRunnable {
                     if (type != null) {
                         boolean shouldUpdate = false;
                         PotionEffect existingEffect = null;
+
                         for (PotionEffect activeEffect : player.getActivePotionEffects()) {
                             if (activeEffect.getType() == type && activeEffect.getAmplifier() == level) {
                                 existingEffect = activeEffect;
@@ -79,6 +80,7 @@ public class EffectsUpdateTask extends BukkitRunnable {
 
     private Map<String, String> getCurrentEffects(Player player) {
         Map<String, String> effects = new HashMap<>();
+
         if (player.getPersistentDataContainer().has(plugin.playerEffectsKey, PersistentDataType.STRING)) {
             String savedEffects = player.getPersistentDataContainer().get(plugin.playerEffectsKey, PersistentDataType.STRING);
             for (String effectEntry : savedEffects.split(";")) {

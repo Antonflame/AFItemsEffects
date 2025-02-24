@@ -1,9 +1,11 @@
 package ru.anton_flame.afitemseffects.utils;
 
-import net.md_5.bungee.api.ChatColor;
+import org.bukkit.ChatColor;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Hex {
 
@@ -24,6 +26,9 @@ public class Hex {
         }
 
         return ChatColor.translateAlternateColorCodes('&', text).replace("&", "");
+    }
 
+    public static List<String> color(List<String> text) {
+        return text.stream().map(Hex::color).collect(Collectors.toList());
     }
 }

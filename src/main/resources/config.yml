@@ -12,6 +12,13 @@ settings:
   effect-info-format: "&6%effect_type% &f(&6%effect_display_name%&f): &6%effect_level% уровень &f- &6%effect_level_price% %effect_economy_display_name%"
   # Формат вывода эффекта в описании предмета
   effect-in-lore-format: "&6%effect_type% %effect_level%"
+  # Формат уровней эффектов
+  effect-levels:
+    1: "I"
+    2: "II"
+    3: "III"
+    4: "IV"
+    5: "V"
 
   # Настройка эффектов (можно добавлять любые эффекты, названия писать обязательно капсом)
   effects:
@@ -154,7 +161,7 @@ messages:
   # Сообщение при добавлении эффекта на предмет, который уже добавлен с более высоким уровнем
   high-effect-already-added: "&cЭффект с более высоким уровнем уже добавлен!"
   # Сообщение при добавлении эффекта на предмет
-  effect-added: "&fЭффект &6%effect% &fдобавлен на предмет!"
+  effect-added: "&fЭффект &6%effect% %level% &fдобавлен на предмет!"
   # Сообщение при добавлении эффекта на предмет, который уже добавлен
   effect-already-added: "&cЭффект %effect% уже добавлен на предмет!"
   # Сообщение при отсутствии экономики

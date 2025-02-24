@@ -1,6 +1,5 @@
 package ru.anton_flame.afitemseffects.commands;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -18,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.anton_flame.afitemseffects.AFItemsEffects;
 import ru.anton_flame.afitemseffects.utils.ConfigManager;
-import ru.anton_flame.afitemseffects.utils.Hex;
 
 import java.util.*;
 
@@ -32,7 +30,7 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player)) {
-            commandSender.sendMessage(Hex.color(ConfigManager.playerOnly));
+            commandSender.sendMessage(ConfigManager.playerOnly);
             return false;
         }
 
@@ -40,7 +38,7 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
 
         if (strings.length < 1) {
             for (String message : ConfigManager.playerHelp) {
-                player.sendMessage(Hex.color(message));
+                player.sendMessage(message);
             }
             return false;
         }
@@ -49,19 +47,19 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
             case "add": {
                 if (strings.length != 3) {
                     for (String message : ConfigManager.playerHelp) {
-                        player.sendMessage(Hex.color(message));
+                        player.sendMessage(message);
                     }
                     return false;
                 }
 
                 if (!player.hasPermission("afitemseffects.add")) {
-                    player.sendMessage(Hex.color(ConfigManager.noPermission));
+                    player.sendMessage(ConfigManager.noPermission);
                     return false;
                 }
 
                 ItemStack item = player.getInventory().getItemInMainHand();
                 if (item.getType() == Material.AIR) {
-                    player.sendMessage(Hex.color(ConfigManager.haventItem));
+                    player.sendMessage(ConfigManager.haventItem);
                     return false;
                 }
 
@@ -69,7 +67,7 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                 int effectLevel;
 
                 if (effectType == null) {
-                    player.sendMessage(Hex.color(ConfigManager.incorrectEffect));
+                    player.sendMessage(ConfigManager.incorrectEffect);
                     return false;
                 }
 
@@ -85,7 +83,7 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                 try {
                     effectLevel = Integer.parseInt(strings[2]);
                 } catch (NumberFormatException e) {
-                    player.sendMessage(Hex.color(ConfigManager.incorrectLevel));
+                    player.sendMessage(ConfigManager.incorrectLevel);
                     return false;
                 }
 
@@ -97,14 +95,14 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                 }
 
                 if (effectLevel > max) {
-                    player.sendMessage(Hex.color(ConfigManager.highEffectLevel));
+                    player.sendMessage(ConfigManager.highEffectLevel);
                     return false;
                 }
 
                 ItemMeta meta = item.getItemMeta();
                 PersistentDataContainer container = meta.getPersistentDataContainer();
 
-                @Nullable List<Component> lore = meta.lore();
+                List<String> lore = meta.getLore();
                 if (lore == null) lore = new ArrayList<>();
 
                 String currentEffects = container.getOrDefault(plugin.itemEffectsKey, PersistentDataType.STRING, "");
@@ -113,7 +111,7 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
 
                 if (!effects.isEmpty()) {
                     if (effects.contains(effectInfo)) {
-                        player.sendMessage(Hex.color(ConfigManager.effectAlreadyAdded.replace("%effect%", effectType.getName())));
+                        player.sendMessage(ConfigManager.effectAlreadyAdded.replace("%effect%", effectType.getName()));
                         return false;
                     }
 
@@ -124,11 +122,11 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                             int currentEffectLevel = Integer.parseInt(effectSplit[1]);
 
                             if (currentEffectType.equalsIgnoreCase(effectType.getName()) && currentEffectLevel < effectLevel) {
-                                String format = Hex.color(ConfigManager.effectAlreadyAdded
+                                String format = ConfigManager.effectInLoreFormat
                                         .replace("%effect_type%", effectsSection.getString(currentEffectType + ".display-name"))
-                                        .replace("%effect_level%", String.valueOf(currentEffectLevel)));
-                                lore.remove(Component.text(format));
-                                meta.lore(lore);
+                                        .replace("%effect_level%", String.valueOf(ConfigManager.effectLevels.getString(effectSplit[1])));
+                                lore.remove(format);
+                                meta.setLore(lore);
                                 item.setItemMeta(meta);
 
                                 effects.remove(effect);
@@ -136,7 +134,7 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                             }
 
                             if (currentEffectType.equalsIgnoreCase(effectType.getName()) && currentEffectLevel > effectLevel) {
-                                player.sendMessage(Hex.color(ConfigManager.highEffectAlreadyAdded));
+                                player.sendMessage(ConfigManager.highEffectAlreadyAdded);
                                 return false;
                             }
                         }
@@ -149,24 +147,24 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                 if (economyName != null && price > 0) {
                     if (economyName.equalsIgnoreCase("Vault")) {
                         if (plugin.vaultAPI == null) {
-                            player.sendMessage(Hex.color(ConfigManager.economyNotFound));
+                            player.sendMessage(ConfigManager.economyNotFound);
                             return false;
                         }
 
                         if (!plugin.vaultAPI.has(player, price)) {
-                            player.sendMessage(Hex.color(ConfigManager.notEnoughCurrency));
+                            player.sendMessage(ConfigManager.notEnoughCurrency);
                             return false;
                         }
 
                         plugin.vaultAPI.withdrawPlayer(player, price);
                     } else if (economyName.equalsIgnoreCase("PlayerPoints")) {
                         if (plugin.playerPointsAPI == null) {
-                            player.sendMessage(Hex.color(ConfigManager.economyNotFound));
+                            player.sendMessage(ConfigManager.economyNotFound);
                             return false;
                         }
 
                         if (plugin.playerPointsAPI.look(player.getUniqueId()) < price) {
-                            player.sendMessage(Hex.color(ConfigManager.notEnoughCurrency));
+                            player.sendMessage(ConfigManager.notEnoughCurrency);
                             return false;
                         }
 
@@ -183,20 +181,20 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                         String[] effectSplit = effect.split(":");
                         if (effectSplit.length == 2) {
                             String currentEffectName = effectsSection.getString(effectSplit[0] + ".display-name");
-                            String currentEffectLevel = effectSplit[1];
+                            String currentEffectLevel = ConfigManager.effectLevels.getString(effectSplit[1]);
 
                             if (effectSplit[0].equalsIgnoreCase(effectType.getName())) {
-                                String format = Hex.color(ConfigManager.effectInLoreFormat
+                                String format = ConfigManager.effectInLoreFormat
                                         .replace("%effect_type%", currentEffectName)
-                                        .replace("%effect_level%", currentEffectLevel));
-                                lore.add(Component.text(format));
+                                        .replace("%effect_level%", currentEffectLevel);
+                                lore.add(format);
                             }
                         }
                     }
-                    meta.lore(lore);
+                    meta.setLore(lore);
                     item.setItemMeta(meta);
 
-                    player.sendMessage(Hex.color(ConfigManager.effectAdded.replace("%effect%", effectType.getName())));
+                    player.sendMessage(ConfigManager.effectAdded.replace("%effect%", effectsSection.getString(effectType.getName() + ".display-name")).replace("%level%", ConfigManager.effectLevels.getString(String.valueOf(effectLevel))));
                 }
             }
             break;
@@ -204,26 +202,26 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
             case "remove": {
                 if (strings.length != 2) {
                     for (String message : ConfigManager.playerHelp) {
-                        player.sendMessage(Hex.color(message));
+                        player.sendMessage(message);
                     }
                     return false;
                 }
 
                 if (!player.hasPermission("afitemseffects.remove")) {
-                    player.sendMessage(Hex.color(ConfigManager.noPermission));
+                    player.sendMessage(ConfigManager.noPermission);
                     return false;
                 }
 
                 ItemStack item = player.getInventory().getItemInMainHand();
                 if (item.getType() == Material.AIR) {
-                    player.sendMessage(Hex.color(ConfigManager.haventItem));
+                    player.sendMessage(ConfigManager.haventItem);
                     return false;
                 }
 
                 ItemMeta meta = item.getItemMeta();
                 PersistentDataContainer container = meta.getPersistentDataContainer();
 
-                @Nullable List<Component> lore = meta.lore();
+                List<String> lore = meta.getLore();
                 if (lore == null) lore = new ArrayList<>();
 
                 String itemEffects = container.getOrDefault(plugin.itemEffectsKey, PersistentDataType.STRING, "");
@@ -231,7 +229,7 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
 
                 if (!strings[1].equalsIgnoreCase("all")) {
                     if (effects.isEmpty()) {
-                        player.sendMessage(Hex.color(ConfigManager.noEffects));
+                        player.sendMessage(ConfigManager.noEffects);
                         return false;
                     }
 
@@ -248,7 +246,7 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                     }
 
                     if (!found) {
-                        player.sendMessage(Hex.color(ConfigManager.effectNotFound.replace("%effect%", effectType)));
+                        player.sendMessage(ConfigManager.effectNotFound.replace("%effect%", ConfigManager.effects.getString(effectType + ".display-name", effectType)));
                         return false;
                     }
 
@@ -256,29 +254,29 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                         String[] effectSplit = effect.split(":");
                         if (effectSplit.length == 2) {
                             String effectName = effectSplit[0];
-                            String effectLevel = effectSplit[1];
+                            String effectLevel = ConfigManager.effectLevels.getString(effectSplit[1]);
 
                             if (effectName.equalsIgnoreCase(effectType)) {
                                 effects.remove(effect);
                                 container.set(plugin.itemEffectsKey, PersistentDataType.STRING, String.join(";", effects));
                                 item.setItemMeta(meta);
 
-                                String format = Hex.color(ConfigManager.effectInLoreFormat
+                                String format = ConfigManager.effectInLoreFormat
                                         .replace("%effect_type%", ConfigManager.effects.getString(effectName + ".display-name"))
-                                        .replace("%effect_level%", effectLevel));
-                                lore.remove(Component.text(format));
+                                        .replace("%effect_level%", effectLevel);
+                                lore.remove(format);
 
-                                meta.lore(lore);
+                                meta.setLore(lore);
                                 item.setItemMeta(meta);
 
-                                player.sendMessage(Hex.color(ConfigManager.effectRemoved).replace("%effect%", effectName));
+                                player.sendMessage(ConfigManager.effectRemoved.replace("%effect%", ConfigManager.effects.getString(effectName + ".display-name")));
                                 break;
                             }
                         }
                     }
                 } else {
                     if (itemEffects.isEmpty()) {
-                        player.sendMessage(Hex.color(ConfigManager.noEffects));
+                        player.sendMessage(ConfigManager.noEffects);
                         return false;
                     }
 
@@ -286,15 +284,15 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                         String[] effectSplit = effect.split(":");
                         if (effectSplit.length == 2) {
                             String currentEffectName = effectSplit[0];
-                            String currentEffectLevel = effectSplit[1];
+                            String currentEffectLevel = ConfigManager.effectLevels.getString(effectSplit[1]);
 
-                            String format = Hex.color(ConfigManager.effectInLoreFormat
+                            String format = ConfigManager.effectInLoreFormat
                                     .replace("%effect_type%", ConfigManager.effects.getString(currentEffectName + ".display-name"))
-                                    .replace("%effect_level%", currentEffectLevel));
+                                    .replace("%effect_level%", currentEffectLevel);
 
-                            lore.remove(Component.text(format));
+                            lore.remove(format);
 
-                            meta.lore(lore);
+                            meta.setLore(lore);
                             item.setItemMeta(meta);
                         }
                     }
@@ -302,7 +300,7 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                     container.set(plugin.itemEffectsKey, PersistentDataType.STRING, "");
                     item.setItemMeta(meta);
 
-                    player.sendMessage(Hex.color(ConfigManager.allEffectsRemoved));
+                    player.sendMessage(ConfigManager.allEffectsRemoved);
                 }
             }
             break;
@@ -310,13 +308,13 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
             case "info": {
                 if (strings.length != 1) {
                     for (String message : ConfigManager.playerHelp) {
-                        player.sendMessage(Hex.color(message));
+                        player.sendMessage(message);
                     }
                     return false;
                 }
 
                 if (!player.hasPermission("afitemseffects.info")) {
-                    player.sendMessage(Hex.color(ConfigManager.noPermission));
+                    player.sendMessage(ConfigManager.noPermission);
                     return false;
                 }
 
@@ -324,27 +322,28 @@ public class ItemsEffectsCommand implements CommandExecutor, TabCompleter {
                 List<String> effects = new ArrayList<>();
                 for (String effect : effectsSection.getKeys(false)) {
                     for (String effectLevel : effectsSection.getConfigurationSection(effect + ".levels").getKeys(false)) {
-                        String format = Hex.color(ConfigManager.effectInfoFormat
+                        String format = ConfigManager.effectInfoFormat
                                 .replace("%effect_type%", effect)
                                 .replace("%effect_display_name%", effectsSection.getString(effect + ".display-name"))
-                                .replace("%effect_level%", effectLevel)
+                                .replace("%effect_level%", ConfigManager.effectLevels.getString(effectLevel))
                                 .replace("%effect_level_price%", effectsSection.getString(effect + ".levels." + effectLevel + ".price"))
-                                .replace("%effect_economy_display_name%", effectsSection.getString(effect + ".levels." + effectLevel + ".economy-display-name")));
+                                .replace("%effect_economy_display_name%", effectsSection.getString(effect + ".levels." + effectLevel + ".economy-display-name"));
                         effects.add(format);
                     }
                 }
                 String effectsString = String.join("\n", effects);
                 for (String message : ConfigManager.effectsInfo) {
-                    player.sendMessage(Hex.color(message).replace("%effects%", effectsString));
+                    player.sendMessage(message.replace("%effects%", effectsString));
                 }
             }
             break;
 
             default:
                 for (String message : ConfigManager.playerHelp) {
-                    player.sendMessage(Hex.color(message));
+                    player.sendMessage(message);
                 }
         }
+
         return true;
     }
 

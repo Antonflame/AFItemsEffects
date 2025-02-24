@@ -13,10 +13,6 @@ import ru.anton_flame.afitemseffects.commands.ItemsEffectsCommand;
 import ru.anton_flame.afitemseffects.tasks.EffectsUpdateTask;
 import ru.anton_flame.afitemseffects.utils.ConfigManager;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 public final class AFItemsEffects extends JavaPlugin {
 
     public final NamespacedKey itemEffectsKey = new NamespacedKey(this, "item_effects");
@@ -31,7 +27,11 @@ public final class AFItemsEffects extends JavaPlugin {
         getLogger().info("Плагин был включен!");
         saveDefaultConfig();
         ConfigManager.setupConfigValues(this);
-        setupEconomy();
+        if (!setupEconomy()) {
+            getLogger().severe("Ни один плагин на экономику не был найден. Плагин будет выключен!");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
 
         PluginCommand afItemsEffectsCommand = getCommand("afitemseffects");
         AFItemsEffectsCommand afItemsEffectsCommandClass = new AFItemsEffectsCommand(this);
@@ -66,18 +66,25 @@ public final class AFItemsEffects extends JavaPlugin {
         return true;
     }
 
-    private void setupEconomy() {
+    private boolean setupEconomy() {
+        boolean isPlayerPointsEnabled = false;
+        boolean isVaultEnabled = false;
+
         if (Bukkit.getPluginManager().isPluginEnabled("PlayerPoints")) {
             playerPointsAPI = PlayerPoints.getInstance().getAPI();
+            isPlayerPointsEnabled = true;
             getLogger().info("Плагин PlayerPoints найден! Экономика с ним работать будет!");
         } else {
-            getLogger().warning("Плагин PlayerPoints не найден! Экономика с этим плагином работать не будет!");
+            getLogger().warning("Плагин PlayerPoints не найден! Экономика с ним работать не будет!");
         }
 
         if (setupVault()) {
-            getLogger().info("Плагин Vault найден! Экономика с этим плагином работать будет!");
+            isVaultEnabled = true;
+            getLogger().info("Плагин Vault найден! Экономика с ним работать будет!");
         } else {
             getLogger().warning("Плагин Vault не найден! Экономика с ним работать не будет!");
         }
+
+        return isPlayerPointsEnabled || isVaultEnabled;
     }
 }

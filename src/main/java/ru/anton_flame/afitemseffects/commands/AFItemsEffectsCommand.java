@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.anton_flame.afitemseffects.AFItemsEffects;
 import ru.anton_flame.afitemseffects.utils.ConfigManager;
-import ru.anton_flame.afitemseffects.utils.Hex;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,20 +23,20 @@ public class AFItemsEffectsCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (strings.length < 1 || !strings[0].equalsIgnoreCase("reload")) {
             for (String message : ConfigManager.adminHelp) {
-                commandSender.sendMessage(Hex.color(message));
+                commandSender.sendMessage(message);
             }
             return false;
         }
 
         if (strings.length == 1 && strings[0].equalsIgnoreCase("reload")) {
             if (!commandSender.hasPermission("afitemseffects.reload")) {
-                commandSender.sendMessage(Hex.color(ConfigManager.noPermission));
+                commandSender.sendMessage(ConfigManager.noPermission);
                 return false;
             }
 
             plugin.reloadConfig();
             ConfigManager.setupConfigValues(plugin);
-            commandSender.sendMessage(Hex.color(ConfigManager.reloaded));
+            commandSender.sendMessage(ConfigManager.reloaded);
         }
         return true;
     }
